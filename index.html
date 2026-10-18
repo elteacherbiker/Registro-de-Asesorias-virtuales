@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Asesorías Académicas - UTXJ</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- SheetJS para exportar a Excel (.xlsx) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Encabezado -->
+  <header class="bg-emerald-700 text-white shadow-md">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <div class="bg-white p-2 rounded-lg text-emerald-700 font-bold text-xl shadow">
+          UTXJ
+        </div>
+        <div>
+          <h1 class="text-xl font-bold leading-tight">Sistema de Asesorías Académicas</h1>
+          <p class="text-xs text-emerald-100">Universidad Tecnológica de Xicotepec de Juárez</p>
+        </div>
+      </div>
+      <button id="toggle-view-btn" onclick="toggleView()" class="flex items-center gap-2 bg-emerald-800 hover:bg-emerald-900 text-white px-3 py-2 rounded-lg text-sm transition font-medium border border-emerald-600">
+        <i data-lucide="lock" class="w-4 h-4"></i>
+        <span id="view-btn-text">Panel Docente</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="flex-grow max-w-6xl w-full mx-auto p-4 md:p-6">
+
+    <!-- SECCIÓN 1: FORMULARIO ALUMNOS -->
+    <section id="student-section" class="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+      <div class="mb-6 border-b pb-4">
+        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <i data-lucide="user-check" class="text-emerald-600"></i>
+          Registro de Asesoría
+        </h2>
+        <p class="text-sm text-slate-500 mt-1">Completa los siguientes datos para registrar tu sesión semanal de asesoría.</p>
+      </div>
+
+      <form id="advisory-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+        
+        <!-- Nombre Completo -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nombre Completo del Alumno *</label>
+          <input type="text" id="nombre" required placeholder="Ej. Juan Pérez García" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-sm">
+        </div>
+
+        <!-- Matrícula y Género -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Matrícula *</label>
+            <input type="text" id="matricula" required placeholder="Ej. 20230123" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Género *</label>
+            <select id="genero" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-sm bg-white">
+              <option value="" disabled selected>Selecciona una opción</option>
+              <option value="Femenino">Femenino</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Otro">Otro / Prefiero no decir</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Nivel Académico y Carrera -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nivel Académico *</label>
+            <select id="nivel" required onchange="actualizarCarreras()" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-sm bg-white">
+              <option value="" disabled selected>Selecciona el nivel</option>
+              <option value="TSU">TSU (1.º a 5.º cuatrimestre)</option>
+              <option value="Licenciatura / Ingeniería">Licenciatura / Ingeniería (6.º en adelante)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Carrera *</label>
+            <select id="carrera" required disabled class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-sm bg-slate-50">
+              <option value="" disabled selected>Primero selecciona el nivel</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Grupo y Número de Asesoría -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Grupo / Cuatrimestre *</label>
+            <input type="text" id="grupo" required placeholder="Ej. 1° A / 7° B" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Número de Asesoría *</label>
+            <select id="num_asesoria" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-sm bg-white">
+              <option value="Asesoría 1 (Semana 1)">Asesoría 1 (Semana 1)</option>
+              <option value="Asesoría 2 (Semana 2)">Asesoría 2 (Semana 2 / 8 días)</option>
+              <option value="Asesoría 3 (Semana 3)">Asesoría 3 (Semana 3 / 16 días)</option>
+              <option value="Asesoría 4 (Semana 4)">Asesoría 4 (Semana 4 / 24 días)</option>
+              <option value="Asesoría 5 (Semana 5)">Asesoría 5 (Semana 5)</option>
+              <option value="Asesoría 6 (Semana 6)">Asesoría 6 (Semana 6)</option>
+              <option value="Asesoría Extraordinaria">Asesoría Extraordinaria</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tema de Asesoría -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tema o Duda Atendida *</label>
+          <textarea id="tema" required rows="3" placeholder="Describe brevemente el tema tratado en la asesoría..." class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-sm"></textarea>
+        </div>
+
+        <!-- Botón de Registro -->
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-sm mt-2">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          Registrar Asesoría
+        </button>
+      </form>
+      
+      <!-- Mensaje de éxito -->
+      <div id="success-alert" class="hidden mt-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-sm flex items-center gap-2">
+        <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600"></i>
+        <span>¡Tu información ha sido registrada correctamente! Gracias.</span>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 2: PANEL DOCENTE (PROTEGIDO) -->
+    <section id="admin-section" class="hidden space-y-6">
+      
+      <!-- Solicitud de Contraseña (si no está autenticado) -->
+      <div id="admin-login" class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div class="text-center mb-4">
+          <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-2">
+            <i data-lucide="shield-check" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800">Acceso Docente</h3>
+          <p class="text-xs text-slate-500">Ingresa la contraseña para gestionar y descargar la información.</p>
+        </div>
+        <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+          <div>
+            <input type="password" id="admin-pass" placeholder="Contraseña de acceso" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+          </div>
+          <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+            Ingresar al Panel
+          </button>
+        </form>
+        <p id="login-error" class="hidden text-xs text-red-500 text-center mt-2">Contraseña incorrecta. Intenta con "admin123".</p>
+      </div>
+
+      <!-- Tabla y Descarga (después de autenticar) -->
+      <div id="admin-dashboard" class="hidden space-y-4">
+        
+        <!-- Tarjetas e Indicadores -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs text-slate-500 font-semibold uppercase">Total Asesorías</p>
+              <h3 id="stat-total" class="text-2xl font-bold text-slate-800">0</h3>
+            </div>
+            <div class="p-3 bg-emerald-100 text-emerald-700 rounded-lg">
+              <i data-lucide="file-text" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs text-slate-500 font-semibold uppercase">Último Registro</p>
+              <h3 id="stat-last" class="text-sm font-semibold text-slate-700">Sin registros</h3>
+            </div>
+            <div class="p-3 bg-blue-100 text-blue-700 rounded-lg">
+              <i data-lucide="calendar" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs text-slate-500 font-semibold uppercase">Exportar Datos</p>
+              <div class="flex gap-2 mt-1">
+                <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-md font-medium transition flex items-center gap-1">
+                  <i data-lucide="download" class="w-3.5 h-3.5"></i> Excel (.xlsx)
+                </button>
+                <button onclick="exportToCSV()" class="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 py-1.5 rounded-md font-medium transition flex items-center gap-1">
+                  <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> CSV
+                </button>
+              </div>
+            </div>
+            <div class="p-3 bg-amber-100 text-amber-700 rounded-lg">
+              <i data-lucide="table" class="w-6 h-6"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buscador y Tabla -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="p-4 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-3">
+            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+              <i data-lucide="list" class="w-4 h-4 text-emerald-600"></i>
+              Histórico de Asesorías
+            </h3>
+            <div class="flex items-center gap-2 w-full md:w-auto">
+              <div class="relative w-full md:w-64">
+                <input type="text" id="search-input" onkeyup="renderTable()" placeholder="Buscar por nombre, matrícula..." class="w-full pl-9 pr-4 py-1.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-2.5 top-2"></i>
+              </div>
+              <button onclick="clearAllData()" class="text-xs text-red-600 hover:text-red-800 font-medium px-2 py-1 rounded border border-red-200 hover:bg-red-50 transition whitespace-nowrap">
+                Vaciar Base
+              </button>
+            </div>
+          </div>
+
+          <!-- Tabla de Datos -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+                <tr>
+                  <th class="p-3">Fecha</th>
+                  <th class="p-3">Matrícula</th>
+                  <th class="p-3">Alumno</th>
+                  <th class="p-3">Género</th>
+                  <th class="p-3">Nivel</th>
+                  <th class="p-3">Carrera</th>
+                  <th class="p-3">Grupo</th>
+                  <th class="p-3">N° Asesoría</th>
+                  <th class="p-3">Tema</th>
+                  <th class="p-3 text-center">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="table-body" class="divide-y divide-slate-100 text-slate-700">
+                <!-- Se llena dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Lógica JavaScript -->
+  <script>
+    // Catálogo Oficial de Carreras de la UTXJ (Extraído del Layout Oficial)
+    const carrerasUTXJ = {
+      "TSU": [
+        "TSU en Desarrollo de Software Multiplataforma",
+        "TSU en Gastronomía",
+        "TSU en Sistemas Automotrices",
+        "TSU en Electromecánica y Automatización",
+        "TSU en Gestión del Capital Humano",
+        "TSU en Entornos Virtuales y Negocios Digitales",
+        "TSU en Biotecnología",
+        "TSU en Agricultura Sustentable y Protegida",
+        "TSU en Operaciones Logísticas y Comercio Exterior",
+        "TSU en Mantenimiento Industrial",
+        "TSU en Tecnología de Alimentos",
+        "TSU en Mantenimiento Petrolero",
+        "TSU en Mantenimiento en Soldadura",
+        "TSU en Emprendimiento, Formulación y Evaluación de Proyectos"
+      ],
+      "Licenciatura / Ingeniería": [
+        "Licenciatura en Terapia Física",
+        "Licenciatura en Enfermería",
+        "Licenciatura en Gastronomía",
+        "Licenciatura en Administración",
+        "Licenciatura en Gestión del Capital Humano",
+        "Ingeniería en Desarrollo y Gestión de Software",
+        "Ingeniería en Tecnologías de la Información e Innovación Digital",
+        "Ingeniería en Sistemas Automotrices",
+        "Ingeniería Mecatrónica",
+        "Ingeniería en Mantenimiento Industrial",
+        "Ingeniería en Agricultura Sustentable y Protegida",
+        "Ingeniería en Logística Internacional",
+        "Ingeniería en Industrias Alimentarias",
+        "Ingeniería en Procesos Industriales"
+      ]
+    };
+
+    let isAdminLoggedIn = false;
+
+    // Inicialización de iconos Lucide
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+    });
+
+    // Actualizar dinámicamente las carreras según el Nivel Académico seleccionado
+    function actualizarCarreras() {
+      const nivelSelect = document.getElementById('nivel').value;
+      const carreraSelect = document.getElementById('carrera');
+
+      carreraSelect.innerHTML = '<option value="" disabled selected>Selecciona una carrera</option>';
+      carreraSelect.disabled = false;
+      carreraSelect.classList.remove('bg-slate-50');
+      carreraSelect.classList.add('bg-white');
+
+      if (carrerasUTXJ[nivelSelect]) {
+        carrerasUTXJ[nivelSelect].forEach(carrera => {
+          const option = document.createElement('option');
+          option.value = carrera;
+          option.textContent = carrera;
+          carreraSelect.appendChild(option);
+        });
+      }
+    }
+
+    // Cambiar entre vista de Alumno y Panel Docente
+    function toggleView() {
+      const studentSec = document.getElementById('student-section');
+      const adminSec = document.getElementById('admin-section');
+      const btnText = document.getElementById('view-btn-text');
+
+      if (studentSec.classList.contains('hidden')) {
+        studentSec.classList.remove('hidden');
+        adminSec.classList.add('hidden');
+        btnText.textContent = "Panel Docente";
+      } else {
+        studentSec.classList.add('hidden');
+        adminSec.classList.remove('hidden');
+        btnText.textContent = "Volver al Formulario";
+        if (isAdminLoggedIn) {
+          renderTable();
+        }
+      }
+    }
+
+    // Iniciar Sesión en el Panel Docente
+    function handleAdminLogin(event) {
+      event.preventDefault();
+      const pass = document.getElementById('admin-pass').value;
+      if (pass === 'admin123') { // Contraseña por defecto
+        isAdminLoggedIn = true;
+        document.getElementById('admin-login').classList.add('hidden');
+        document.getElementById('admin-dashboard').classList.remove('hidden');
+        document.getElementById('login-error').classList.add('hidden');
+        renderTable();
+      } else {
+        document.getElementById('login-error').classList.remove('hidden');
+      }
+    }
+
+    // Guardar Asesoría
+    function handleFormSubmit(event) {
+      event.preventDefault();
+
+      const newRecord = {
+        id: Date.now(),
+        fecha: new Date().toLocaleString('es-MX'),
+        nombre: document.getElementById('nombre').value.trim(),
+        matricula: document.getElementById('matricula').value.trim(),
+        genero: document.getElementById('genero').value,
+        nivel: document.getElementById('nivel').value,
+        carrera: document.getElementById('carrera').value,
+        grupo: document.getElementById('grupo').value.trim(),
+        num_asesoria: document.getElementById('num_asesoria').value,
+        tema: document.getElementById('tema').value.trim()
+      };
+
+      const records = JSON.parse(localStorage.getItem('asesorias_utxj') || '[]');
+      records.push(newRecord);
+      localStorage.setItem('asesorias_utxj', JSON.stringify(records));
+
+      // Resetear el formulario
+      document.getElementById('advisory-form').reset();
+      const carreraSelect = document.getElementById('carrera');
+      carreraSelect.innerHTML = '<option value="" disabled selected>Primero selecciona el nivel</option>';
+      carreraSelect.disabled = true;
+      carreraSelect.classList.add('bg-slate-50');
+
+      // Mostrar alerta
+      const alert = document.getElementById('success-alert');
+      alert.classList.remove('hidden');
+      setTimeout(() => alert.classList.add('hidden'), 4000);
+    }
+
+    // Renderizar la Tabla en el Panel Docente
+    function renderTable() {
+      const records = JSON.parse(localStorage.getItem('asesorias_utxj') || '[]');
+      const searchQuery = (document.getElementById('search-input')?.value || '').toLowerCase();
+      const tbody = document.getElementById('table-body');
+      
+      tbody.innerHTML = '';
+
+      const filtered = records.filter(r => 
+        r.nombre.toLowerCase().includes(searchQuery) ||
+        r.matricula.toLowerCase().includes(searchQuery) ||
+        r.carrera.toLowerCase().includes(searchQuery) ||
+        r.grupo.toLowerCase().includes(searchQuery)
+      );
+
+      // Actualizar Estadísticas
+      document.getElementById('stat-total').textContent = records.length;
+      document.getElementById('stat-last').textContent = records.length > 0 ? records[records.length - 1].fecha : 'Sin registros';
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-slate-400">No hay registros guardados.</td></tr>`;
+        return;
+      }
+
+      filtered.reverse().forEach(record => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-slate-50 border-b border-slate-100 transition';
+        row.innerHTML = `
+          <td class="p-3 text-slate-500 whitespace-nowrap">${record.fecha}</td>
+          <td class="p-3 font-semibold text-emerald-700">${record.matricula}</td>
+          <td class="p-3 font-medium text-slate-800">${record.nombre}</td>
+          <td class="p-3">${record.genero}</td>
+          <td class="p-3 font-medium text-slate-600">${record.nivel || 'N/A'}</td>
+          <td class="p-3">${record.carrera}</td>
+          <td class="p-3">${record.grupo}</td>
+          <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs">${record.num_asesoria}</span></td>
+          <td class="p-3 text-slate-600 max-w-xs truncate" title="${record.tema}">${record.tema}</td>
+          <td class="p-3 text-center">
+            <button onclick="deleteRecord(${record.id})" class="text-red-500 hover:text-red-700 p-1">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      lucide.createIcons();
+    }
+
+    // Eliminar un registro individual
+    function deleteRecord(id) {
+      if (confirm('¿Deseas eliminar este registro de asesoría?')) {
+        let records = JSON.parse(localStorage.getItem('asesorias_utxj') || '[]');
+        records = records.filter(r => r.id !== id);
+        localStorage.setItem('asesorias_utxj', JSON.stringify(records));
+        renderTable();
+      }
+    }
+
+    // Vaciar toda la base de datos
+    function clearAllData() {
+      if (confirm('¿Estás seguro de que deseas ELIMINAR TODOS los registros? Esta acción no se puede deshacer.')) {
+        localStorage.removeItem('asesorias_utxj');
+        renderTable();
+      }
+    }
+
+    // Exportar a Excel (.xlsx)
+    function exportToExcel() {
+      const records = JSON.parse(localStorage.getItem('asesorias_utxj') || '[]');
+      if (records.length === 0) {
+        alert('No hay registros para exportar.');
+        return;
+      }
+
+      const formattedData = records.map(r => ({
+        "Fecha de Registro": r.fecha,
+        "Matrícula": r.matricula,
+        "Nombre del Alumno": r.nombre,
+        "Género": r.genero,
+        "Nivel Académico": r.nivel || "N/A",
+        "Carrera": r.carrera,
+        "Grupo": r.grupo,
+        "Número de Asesoría": r.num_asesoria,
+        "Tema o Duda Atendida": r.tema
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(formattedData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Asesorías");
+      
+      XLSX.writeFile(workbook, `Reporte_Asesorias_UTXJ_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+    // Exportar a CSV
+    function exportToCSV() {
+      const records = JSON.parse(localStorage.getItem('asesorias_utxj') || '[]');
+      if (records.length === 0) {
+        alert('No hay registros para exportar.');
+        return;
+      }
+
+      const headers = ["Fecha", "Matricula", "Nombre", "Genero", "Nivel", "Carrera", "Grupo", "Num_Asesoria", "Tema"];
+      const rows = records.map(r => [
+        `"${r.fecha}"`,
+        `"${r.matricula}"`,
+        `"${r.nombre}"`,
+        `"${r.genero}"`,
+        `"${r.nivel || ''}"`,
+        `"${r.carrera}"`,
+        `"${r.grupo}"`,
+        `"${r.num_asesoria}"`,
+        `"${r.tema.replace(/"/g, '""')}"`
+      ]);
+
+      const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Reporte_Asesorias_UTXJ_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
